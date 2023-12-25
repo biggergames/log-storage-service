@@ -1,0 +1,2 @@
+@Library('shared-lib') _
+backendDeployTest 'https://github.com/biggergames/account-service.git'
