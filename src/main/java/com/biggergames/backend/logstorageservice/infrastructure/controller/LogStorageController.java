@@ -45,11 +45,23 @@ public class LogStorageController {
     @ResponseBody
     @CrossOrigin
     @Timed(value = "lss.controller.storage.load")
-    public ResponseEntity<LoadLogFileResponseDto> load(@RequestParam @NotEmpty String path,
+    public ResponseEntity<LoadLogFileResponseDto> load(@RequestParam @NotEmpty String key,
                                                       HttpServletRequest request) {
-        log.debug("load request arrived for key: {}", path);
+        log.debug("load request arrived for key: {}", key);
 
-        LoadLogFileResponseDto logFile = logStorageService.getLogFile(path);
+        LoadLogFileResponseDto logFile = logStorageService.getLogFile(key);
+        return responseService.getResponseEntity(request, logFile);
+    }
+
+    @GetMapping(value = "/load-list", produces = MediaType.APPLICATION_JSON_VALUE, headers = {BG_AUTHORIZATION})
+    @ResponseBody
+    @CrossOrigin
+    @Timed(value = "lss.controller.storage.load-list")
+    public ResponseEntity<LoadLogFileResponseDto> loadList(@RequestParam @NotEmpty String accountId,
+                                                       HttpServletRequest request) {
+        log.debug("load-list request arrived for accountId: {}", accountId);
+
+        LoadLogFileResponseDto logFile = logStorageService.getLogFileList(accountId);
         return responseService.getResponseEntity(request, logFile);
     }
 

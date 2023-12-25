@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 @Getter
 @Setter
 @SuperBuilder
@@ -14,4 +16,5 @@ import lombok.experimental.SuperBuilder;
 public class LoadLogFileResponseDto extends BaseResponseDto {
     private String fileName;
     private String fileContent;
+    private List<String> keys;
 }
