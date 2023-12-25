@@ -1,2 +1,2 @@
 @Library('shared-lib') _
-backendDeployTest 'https://github.com/biggergames/account-service.git'
+backendDeployTest 'https://github.com/biggergames/log-storage-service.git'

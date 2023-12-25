@@ -16,7 +16,7 @@ RUN mvn clean package -Dbg.version=$bg_version -P $maven_profile
 
 FROM openjdk:17.0.2
 
-COPY --from=build /home/app/src/target/account-service.jar /usr/local/lib/app.jar
+COPY --from=build /home/app/src/target/log-storage-service.jar /usr/local/lib/app.jar
 
 EXPOSE 8080
 

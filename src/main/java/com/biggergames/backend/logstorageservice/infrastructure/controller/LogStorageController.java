@@ -19,11 +19,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.biggergames.backend.logstorageservice.domain.common.ApiConstants.API_PREFIX;
 import static com.biggergames.backend.logstorageservice.domain.common.CustomHeader.BG_AUTHORIZATION;
 
 @Validated
 @RestController
-@RequestMapping("api/v1")
+@RequestMapping(API_PREFIX)
 @RequiredArgsConstructor
 @Slf4j
 public class LogStorageController {

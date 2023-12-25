@@ -73,6 +73,7 @@ public class LogStorageService {
         }
     }
 
+    // gets exact file
     public LoadLogFileResponseDto getLogFile(String key) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(s3Config.getBucketName())
@@ -84,19 +85,21 @@ public class LogStorageService {
         return new LoadLogFileResponseDto(key, fileContent, null);
     }
 
+    // gets file name list
     public LoadLogFileResponseDto getLogFileList(String accountId) {
         ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
                 .bucket(s3Config.getBucketName()).prefix(s3Config.getKey().concat(accountId)).build();
         ListObjectsV2Response listObjectsV2Response = s3Client.listObjectsV2(listObjectsV2Request);
         List<S3Object> s3ObjectList = listObjectsV2Response.contents();
 
+        // gets file names into a string list
         List<String> keys = new ArrayList<>();
         for (S3Object logFileS3Object : s3ObjectList) {
             Optional<String> optionalFileName = logFileS3Object.getValueForField(S3_KEY_FIELD, String.class);
             optionalFileName.ifPresent(keys::add);
         }
 
-        return new LoadLogFileResponseDto(accountId, null, keys);
+        return new LoadLogFileResponseDto(null, null, keys);
     }
 
     // checks if a single log file is valid
