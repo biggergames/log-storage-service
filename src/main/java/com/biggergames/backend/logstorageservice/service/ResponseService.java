@@ -28,27 +28,15 @@ public class ResponseService {
         return getResponseEntity(request, body, ResponseCode.SUCCESS);
     }
 
-    // generates response entity for list objects
-    public <T extends BaseResponseDto> ResponseEntity<List<T>> getResponseEntity(HttpServletRequest request, List<T> body) {
-        return ResponseEntity.status(HttpStatus.OK)
-                .header(BG_CODE, ResponseCode.SUCCESS.getCode())
-                .header(BG_TIME, time())
-                .header(BG_TYPE, ResponseCode.SUCCESS.getType())
-                .header(BG_TRANSACTION_ID, getTransactionId(request))
-                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*")
-                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "*")
-                .body(body);
-    }
-
-    public <T extends BaseResponseDto> ResponseEntity<T> getErroneousResponseEntity(T errorResponse) {
-        return getResponseEntity(null, errorResponse, ResponseCode.SYSTEM_EXCEPTION);
+    public <T extends BaseResponseDto> ResponseEntity<T> getErroneousResponseEntity(T errorResponse, ResponseCode responseCode) {
+        return getResponseEntity(null, errorResponse, responseCode);
     }
 
     private <T extends BaseResponseDto> ResponseEntity<T> getResponseEntity(HttpServletRequest request, T body, ResponseCode responseCode) {
         return ResponseEntity.status(HttpStatus.OK)
                 .header(BG_CODE, responseCode.getCode())
                 .header(BG_TIME, time())
-                .header(BG_TYPE, responseCode.getType())
+                .header(BG_TYPE, body.getClass().getSimpleName())
                 .header(BG_TRANSACTION_ID, getTransactionId(request))
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*")
                 .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "*")

@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.biggergames.backend.logstorageservice.domain.common.ApiConstants.API_PREFIX;
-import static com.biggergames.backend.logstorageservice.domain.common.CustomHeader.BG_AUTHORIZATION;
 
 @Validated
 @RestController
@@ -31,7 +30,7 @@ public class LogStorageController {
     private final LogStorageService logStorageService;
     private final ResponseService responseService;
 
-    @PostMapping(value = "/save", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, headers = {BG_AUTHORIZATION})
+    @PostMapping(value = "/save", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Timed(value = "lss.controller.storage.save")
     public ResponseEntity<BaseResponseDto> save(@RequestParam @NotEmpty String accountId,
                                                 @RequestPart("files") MultipartFile[] logFiles,
@@ -42,7 +41,7 @@ public class LogStorageController {
         return responseService.getResponseEntity(request, new BaseResponseDto("Files are uploaded successfully"));
     }
 
-    @GetMapping(value = "/load", produces = MediaType.APPLICATION_JSON_VALUE, headers = {BG_AUTHORIZATION})
+    @GetMapping(value = "/load", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @CrossOrigin
     @Timed(value = "lss.controller.storage.load")
@@ -54,7 +53,7 @@ public class LogStorageController {
         return responseService.getResponseEntity(request, logFile);
     }
 
-    @GetMapping(value = "/load-list", produces = MediaType.APPLICATION_JSON_VALUE, headers = {BG_AUTHORIZATION})
+    @GetMapping(value = "/load-list", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @CrossOrigin
     @Timed(value = "lss.controller.storage.load-list")
