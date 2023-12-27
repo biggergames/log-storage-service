@@ -1,0 +1,2 @@
+@Library('shared-lib') _
+backendDeployDev 'https://github.com/biggergames/log-storage-service.git'
