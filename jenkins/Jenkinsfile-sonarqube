@@ -7,10 +7,10 @@ pipeline {
               sh 'ls -l'
               sh '''
               mvn clean verify sonar:sonar \
-                  -Dsonar.projectKey=biggergames_account-service_AYyCoJICfX4gxGg7MNii \
-                  -Dsonar.projectName='account-service' \
+                  -Dsonar.projectKey=biggergames_log-storage-service_AYyqOr8Z3P2zjW8yT36v \
+                  -Dsonar.projectName='log-storage-service' \
                   -Dsonar.host.url=http://sonarqube.biggergames.int \
-                  -Dsonar.token= sqp_2b137a702c904f10c126dfe0e1d1d141dd53ad9a
+                  -Dsonar.token= sqp_e48c7774cc1bb9055ac9cd796eb16faff2da82c0
               '''
         }
       }
