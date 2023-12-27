@@ -25,6 +25,12 @@ public class S3Config {
     @Value("${storage.s3.key}")
     private String key;
 
+    @Value("${bg.aws.s3.access}")
+    private String accessKey;
+
+    @Value("${bg.aws.s3.secret}")
+    private String secretKey;
+
     @Value("${storage.max-file-size}")
     private Long maxFileSize;
 
@@ -35,7 +41,10 @@ public class S3Config {
     public S3Client s3Client() {
         return S3Client.builder()
                 .region(Region.of(region))
-                .credentialsProvider(SystemPropertyCredentialsProvider.create())
-                .build();
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(accessKey, secretKey)
+                        )
+                ).build();
     }
 }
