@@ -7,7 +7,7 @@ ARG maven_profile
 
 WORKDIR /home/app/src
 
-COPY src /home/app/src
+COPY . /home/app/src
 
 RUN mvn clean package -Dbg.version=$bg_version -P $maven_profile
 
