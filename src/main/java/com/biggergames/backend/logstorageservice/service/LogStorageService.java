@@ -3,7 +3,6 @@ package com.biggergames.backend.logstorageservice.service;
 import com.biggergames.backend.logstorageservice.config.S3Config;
 import com.biggergames.backend.logstorageservice.domain.exception.LogFileUploadFailException;
 import com.biggergames.backend.logstorageservice.infrastructure.response.LoadLogFileResponseDto;
-import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
@@ -76,7 +75,7 @@ public class LogStorageService {
     public LoadLogFileResponseDto getLogFile(String key) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(s3Config.getBucketName())
-                .key(s3Config.getKey().concat(key))
+                .key(key)
                 .build();
         ResponseBytes<GetObjectResponse> objectResponseAsBytes = s3Client.getObjectAsBytes(getObjectRequest);
         String fileContent = new String(objectResponseAsBytes.asByteArray(), StandardCharsets.UTF_8);
