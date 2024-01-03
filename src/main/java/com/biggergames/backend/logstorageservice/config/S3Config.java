@@ -31,9 +31,6 @@ public class S3Config {
     @Value("${bg.aws.s3.secret}")
     private String secretKey;
 
-    @Value("${storage.max-file-size}")
-    private Long maxFileSize;
-
     @Value("${format.date-of-save:yyyyMMddHHmmss}")
     private String saveDateFormat;
 
