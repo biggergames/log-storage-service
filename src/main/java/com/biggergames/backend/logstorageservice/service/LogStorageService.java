@@ -105,8 +105,7 @@ public class LogStorageService {
         return !(logFile == null
                 || logFile.isEmpty()
                 || Objects.equals("", logFile.getOriginalFilename())
-                || Objects.equals(null, logFile.getOriginalFilename())
-                || logFile.getSize() > s3Config.getMaxFileSize());
+                || Objects.equals(null, logFile.getOriginalFilename()));
     }
 
     // checks if log file array is valid
