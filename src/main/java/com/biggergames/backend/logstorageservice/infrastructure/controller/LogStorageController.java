@@ -1,6 +1,8 @@
 package com.biggergames.backend.logstorageservice.infrastructure.controller;
 
+import com.biggergames.backend.logstorageservice.domain.common.ResponseCode;
 import com.biggergames.backend.logstorageservice.infrastructure.response.BaseResponseDto;
+import com.biggergames.backend.logstorageservice.infrastructure.response.ErrorResponseDto;
 import com.biggergames.backend.logstorageservice.infrastructure.response.LoadLogFileResponseDto;
 import com.biggergames.backend.logstorageservice.service.LogStorageService;
 import com.biggergames.backend.logstorageservice.service.ResponseService;
@@ -9,11 +11,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -46,7 +56,7 @@ public class LogStorageController {
     @CrossOrigin
     @Timed(value = "lss.controller.storage.load")
     public ResponseEntity<LoadLogFileResponseDto> load(@RequestParam @NotEmpty String key,
-                                                      HttpServletRequest request) {
+                                                       HttpServletRequest request) {
         log.debug("load request arrived for key: {}", key);
 
         LoadLogFileResponseDto logFile = logStorageService.getLogFile(key);
@@ -58,11 +68,26 @@ public class LogStorageController {
     @CrossOrigin
     @Timed(value = "lss.controller.storage.load-list")
     public ResponseEntity<LoadLogFileResponseDto> loadList(@RequestParam @NotEmpty String accountId,
-                                                       HttpServletRequest request) {
+                                                           HttpServletRequest request) {
         log.debug("load-list request arrived for accountId: {}", accountId);
 
         LoadLogFileResponseDto logFile = logStorageService.getLogFileList(accountId);
         return responseService.getResponseEntity(request, logFile);
+    }
+
+    @GetMapping(value = "/download-all", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    @CrossOrigin
+    @Timed(value = "lss.controller.storage.download-all")
+    public ResponseEntity<Resource> downloadAll(@RequestParam @NotEmpty String accountId,
+                                         @RequestParam @NotEmpty String directoryKey,
+                                         HttpServletRequest request) {
+        log.debug("download-all request arrived for accountId: {}", accountId);
+        Resource resource = logStorageService.downloadAll(accountId, directoryKey);
+        if (resource == null) {
+            return responseService.getErroneousResponseEntity(request, ResponseCode.NOT_FOUND);
+        }
+        return responseService.getResponseEntity(request, resource);
     }
 
     private List<String> getFileNames(MultipartFile[] multipartFiles) {
