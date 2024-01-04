@@ -6,17 +6,20 @@ import com.biggergames.backend.logstorageservice.infrastructure.response.LoadLog
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
 import java.nio.file.Files;
+
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @Slf4j
@@ -34,7 +39,7 @@ public class LogStorageService {
     private final S3Config s3Config;
     private final S3Client s3Client;
 
-    private static final String FILE_DELIMITER = "/";
+    private static final String DIRECTORY_DELIMITER = "/";
 
     public void saveLogFiles(String accountId, MultipartFile[] logFiles) throws IOException {
         // checks if multipart file array is valid
@@ -61,9 +66,9 @@ public class LogStorageService {
                     .bucket(s3Config.getBucketName())
                     .key(s3Config.getKey()
                             .concat(accountId)
-                            .concat(FILE_DELIMITER)
+                            .concat(DIRECTORY_DELIMITER)
                             .concat(saveDate)
-                            .concat(FILE_DELIMITER)
+                            .concat(DIRECTORY_DELIMITER)
                             .concat(Objects.requireNonNull(logFile.getOriginalFilename())))
                     .build();
 
@@ -98,6 +103,52 @@ public class LogStorageService {
         }
 
         return new LoadLogFileResponseDto(null, null, keys);
+    }
+
+    // downloads all files from a directory as zip
+    public Resource downloadAll(String accountId, String directoryName) {
+        // lists all objects from given directory key
+        ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
+                .bucket(s3Config.getBucketName())
+                .prefix(s3Config.getKey()
+                        .concat(accountId)
+                        .concat(DIRECTORY_DELIMITER)
+                        .concat(directoryName))
+                .build();
+        ListObjectsV2Response listObjectsV2Response = s3Client.listObjectsV2(listObjectsV2Request);
+        // checks if object list is valid
+        if (listObjectsV2Response == null || listObjectsV2Response.contents().isEmpty()) {
+            log.error("Logs do not exist for given accountId: {} and directory key: {}", accountId, directoryName);
+            return null;
+        }
+
+        // creates a ZipOutputStream to write files into
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
+            // for each object in directory
+            for (S3Object s3Object : listObjectsV2Response.contents()) {
+                // crates a zip entry object
+                ZipEntry zipEntry = new ZipEntry(s3Object.key());
+                zipOutputStream.putNextEntry(zipEntry);
+                // makes a request to fetch file content from s3
+                GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                        .bucket(s3Config.getBucketName())
+                        .key(s3Object.key())
+                        .build();
+                ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(getObjectRequest);
+                if (responseInputStream == null || responseInputStream.response() == null) {
+                    log.error("The log file from given directory is null, accountId: {}, key:{}", accountId, s3Object.key());
+                    continue;
+                }
+
+                // writes content to zipOutputStream as bytes
+                zipOutputStream.write(responseInputStream.readAllBytes());
+                zipOutputStream.closeEntry();
+            }
+        } catch (IOException e) {
+            log.error("Log files could not be downloaded, accountId: {}, directory: {}", accountId, directoryName);
+        }
+        return new InputStreamResource(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
     }
 
     // checks if a single log file is valid
