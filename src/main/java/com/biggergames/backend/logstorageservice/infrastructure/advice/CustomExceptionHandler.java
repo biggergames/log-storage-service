@@ -52,19 +52,8 @@ public class CustomExceptionHandler {
         return responseService.getErroneousResponseEntity(errorResponse, ResponseCode.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {ConstraintViolationException.class})
+    @ExceptionHandler(value = {ConstraintViolationException.class, MissingServletRequestParameterException.class})
     public ResponseEntity<ErrorResponseDto> handleConstraintViolationException(Exception e) {
-        log.warn(e.getMessage() + LOG_REQUEST_PLACEHOLDER, getCurrentRequestMethodAndURL());
-        log.error(LOG_MESSAGE_PLACEHOLDER, e);
-        ErrorResponseDto errorResponse = ErrorResponseDto.builder()
-                .message(e.getMessage())
-                .type(e.getClass().getSimpleName())
-                .build();
-        return responseService.getErroneousResponseEntity(errorResponse, ResponseCode.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(value = {MissingServletRequestParameterException.class})
-    public ResponseEntity<ErrorResponseDto> handleMissingServletRequestParameterException(Exception e) {
         log.warn(e.getMessage() + LOG_REQUEST_PLACEHOLDER, getCurrentRequestMethodAndURL());
         log.error(LOG_MESSAGE_PLACEHOLDER, e);
         ErrorResponseDto errorResponse = ErrorResponseDto.builder()
