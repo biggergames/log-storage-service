@@ -2,7 +2,6 @@ package com.biggergames.backend.logstorageservice.infrastructure.controller;
 
 import com.biggergames.backend.logstorageservice.domain.common.ResponseCode;
 import com.biggergames.backend.logstorageservice.infrastructure.response.BaseResponseDto;
-import com.biggergames.backend.logstorageservice.infrastructure.response.ErrorResponseDto;
 import com.biggergames.backend.logstorageservice.infrastructure.response.LoadLogFileResponseDto;
 import com.biggergames.backend.logstorageservice.service.LogStorageService;
 import com.biggergames.backend.logstorageservice.service.ResponseService;
@@ -11,19 +10,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -40,14 +32,25 @@ public class LogStorageController {
     private final LogStorageService logStorageService;
     private final ResponseService responseService;
 
+//    @PostMapping(value = "/save", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+//    @Timed(value = "lss.controller.storage.save")
+//    public ResponseEntity<BaseResponseDto> save(@RequestParam @NotEmpty String accountId,
+//                                                @RequestPart("files") MultipartFile[] logFiles,
+//                                                HttpServletRequest request) throws IOException {
+//        log.debug("save request arrived for accountId: {}, logFiles: {}", accountId, getFileNames(logFiles));
+//
+//        logStorageService.saveLogFiles(accountId, logFiles);
+//        return responseService.getResponseEntity(request, new BaseResponseDto("Files are uploaded successfully"));
+//    }
+
     @PostMapping(value = "/save", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Timed(value = "lss.controller.storage.save")
-    public ResponseEntity<BaseResponseDto> save(@RequestParam @NotEmpty String accountId,
-                                                @RequestPart("files") MultipartFile[] logFiles,
+    public ResponseEntity<BaseResponseDto> saveZip(@RequestParam @NotEmpty String accountId,
+                                                @RequestPart("files") MultipartFile zipLogFile,
                                                 HttpServletRequest request) throws IOException {
-        log.debug("save request arrived for accountId: {}, logFiles: {}", accountId, getFileNames(logFiles));
+        log.debug("save request arrived for accountId: {}, logFiles: {}", accountId, zipLogFile);
 
-        logStorageService.saveLogFiles(accountId, logFiles);
+        logStorageService.saveZipLogFile(accountId, zipLogFile);
         return responseService.getResponseEntity(request, new BaseResponseDto("Files are uploaded successfully"));
     }
 
