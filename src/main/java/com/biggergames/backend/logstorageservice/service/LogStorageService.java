@@ -28,13 +28,11 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+
 import org.springframework.mock.web.MockMultipartFile;
 
 
@@ -44,13 +42,14 @@ import org.springframework.mock.web.MockMultipartFile;
 @Primary
 public class LogStorageService {
     public static final String S3_KEY_FIELD = "Key";
+    public static final String FILE_NAME_DELIMITER = "__";
     private final S3Config s3Config;
     private final S3Client s3Client;
 
     private static final String DIRECTORY_DELIMITER = "/";
 
     public void saveZipLogFile(String accountId, MultipartFile zipLogFile) throws IOException {
-        if (zipLogFile == null ) {
+        if (zipLogFile == null) {
             throw new LogFileUploadFailException(String.format("Multipart zip file is null, accountId: %s,", accountId));
         }
         List<MultipartFile> multipartFiles = extractZipFile(zipLogFile);
@@ -88,7 +87,9 @@ public class LogStorageService {
                             .concat(DIRECTORY_DELIMITER)
                             .concat(saveDate)
                             .concat(DIRECTORY_DELIMITER)
-                            .concat(Objects.requireNonNull(logFile.getOriginalFilename())))
+                            .concat(accountId
+                                    .concat(FILE_NAME_DELIMITER)
+                                    .concat(Objects.requireNonNull(logFile.getOriginalFilename()))))
                     .build();
 
             s3Client.putObject(request, RequestBody.fromFile(tempFile.toFile()));
