@@ -31,7 +31,7 @@ public class S3Config {
     @Value("${bg.aws.s3.secret}")
     private String secretKey;
 
-    @Value("${format.date-of-save:yyyyMMddHHmmss}")
+    @Value("${format.date-of-save:yyyy-MM-dd__HH.mm.ss}")
     private String saveDateFormat;
 
     @Bean

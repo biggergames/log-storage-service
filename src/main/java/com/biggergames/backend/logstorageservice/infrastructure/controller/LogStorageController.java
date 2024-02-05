@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import static com.biggergames.backend.logstorageservice.domain.common.ApiConstants.API_PREFIX;
 
@@ -91,10 +89,5 @@ public class LogStorageController {
             return responseService.getErroneousResponseEntity(request, ResponseCode.NOT_FOUND);
         }
         return responseService.getResponseEntity(request, resource);
-    }
-
-    private List<String> getFileNames(MultipartFile[] multipartFiles) {
-        return Arrays.stream(multipartFiles)
-                .map(m -> m.getOriginalFilename() == null ? "empty_file" : m.getOriginalFilename()).toList();
     }
 }
