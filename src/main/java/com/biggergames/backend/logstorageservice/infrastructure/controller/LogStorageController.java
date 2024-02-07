@@ -46,7 +46,8 @@ public class LogStorageController {
     public ResponseEntity<BaseResponseDto> saveZip(@RequestParam @NotEmpty String accountId,
                                                 @RequestPart("files") MultipartFile zipLogFile,
                                                 HttpServletRequest request) throws IOException {
-        log.debug("save request arrived for accountId: {}, logFiles: {}", accountId, zipLogFile);
+        log.debug("save request arrived for accountId: {}, zipLogFileName: {}",
+                accountId, zipLogFile.getOriginalFilename());
 
         logStorageService.saveZipLogFile(accountId, zipLogFile);
         return responseService.getResponseEntity(request, new BaseResponseDto("Files are uploaded successfully"));
