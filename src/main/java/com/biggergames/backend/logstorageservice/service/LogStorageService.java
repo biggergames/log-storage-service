@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -23,12 +24,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+
+import org.springframework.mock.web.MockMultipartFile;
+
 
 @Service
 @Slf4j
@@ -36,12 +42,24 @@ import java.util.zip.ZipOutputStream;
 @Primary
 public class LogStorageService {
     public static final String S3_KEY_FIELD = "Key";
+    public static final String FILE_NAME_DELIMITER = "__";
     private final S3Config s3Config;
     private final S3Client s3Client;
 
     private static final String DIRECTORY_DELIMITER = "/";
 
-    public void saveLogFiles(String accountId, MultipartFile[] logFiles) throws IOException {
+    public void saveZipLogFile(String accountId, MultipartFile zipLogFile) throws IOException {
+        if (zipLogFile == null) {
+            throw new LogFileUploadFailException(String.format("Multipart zip file is null, accountId: %s,", accountId));
+        }
+        List<MultipartFile> multipartFiles = extractZipFile(zipLogFile);
+        if (CollectionUtils.isEmpty(multipartFiles)) {
+            throw new LogFileUploadFailException(String.format("Extracted multipart files is empty, accountId: %s,", accountId));
+        }
+        saveLogFiles(accountId, multipartFiles.toArray(new MultipartFile[0]));
+    }
+
+    private void saveLogFiles(String accountId, MultipartFile[] logFiles) throws IOException {
         // checks if multipart file array is valid
         if (!isLogFileArrayValid(logFiles)) {
             throw new LogFileUploadFailException(String.format("Multipart file array is not valid, accountId: %s,", accountId));
@@ -69,7 +87,9 @@ public class LogStorageService {
                             .concat(DIRECTORY_DELIMITER)
                             .concat(saveDate)
                             .concat(DIRECTORY_DELIMITER)
-                            .concat(Objects.requireNonNull(logFile.getOriginalFilename())))
+                            .concat(accountId
+                                    .concat(FILE_NAME_DELIMITER)
+                                    .concat(Objects.requireNonNull(logFile.getOriginalFilename()))))
                     .build();
 
             s3Client.putObject(request, RequestBody.fromFile(tempFile.toFile()));
@@ -166,5 +186,24 @@ public class LogStorageService {
 
     private String getSaveDate() {
         return ZonedDateTime.now().format(DateTimeFormatter.ofPattern(s3Config.getSaveDateFormat()));
+    }
+
+    public List<MultipartFile> extractZipFile(MultipartFile zipLogFile) throws IOException {
+        List<MultipartFile> extractedFiles = new ArrayList<>();
+
+        try (InputStream inputStream = zipLogFile.getInputStream();
+             ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
+            ZipEntry zipEntry;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if (!zipEntry.isDirectory()) {
+                    byte[] fileBytes = zipInputStream.readAllBytes();
+                    String fileName = zipEntry.getName();
+                    MultipartFile extractedFile = new MockMultipartFile(fileName, fileName, "text/plain", fileBytes);
+                    extractedFiles.add(extractedFile);
+                }
+            }
+        }
+
+        return extractedFiles;
     }
 }
