@@ -1,0 +1,46 @@
+<configuration>
+    <springProfile name="local">
+        <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <Pattern>
+                    %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+                </Pattern>
+            </layout>
+        </appender>
+        <root level="info">
+            <appender-ref ref="stdout"/>
+        </root>
+
+        <logger name="com.biggergames" level="debug" additivity="false">
+            <appender-ref ref="stdout"/>
+        </logger>
+
+        <logger name="org.springframework" level="warn" additivity="false">
+            <appender-ref ref="stdout"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="dev|test|prod">
+        <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                </jsonFormatter>
+                <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSX</timestampFormat>
+                <timestampFormatTimezoneId>Etc/UTC</timestampFormatTimezoneId>
+                <appendLineSeparator>true</appendLineSeparator>
+            </layout>
+        </appender>
+        <root level="warn">
+            <appender-ref ref="stdout"/>
+        </root>
+
+        <logger name="com.biggergames" level="debug" additivity="false">
+            <appender-ref ref="stdout"/>
+        </logger>
+
+        <logger name="org.springframework" level="warn" additivity="false">
+            <appender-ref ref="stdout"/>
+        </logger>
+    </springProfile>
+
+</configuration>
